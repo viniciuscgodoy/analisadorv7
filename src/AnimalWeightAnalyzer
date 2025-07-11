@@ -1,0 +1,139 @@
+import React, { useState, useCallback, useMemo } from 'react';
+import { Upload } from 'lucide-react';
+import * as XLSX from 'xlsx';
+import Papa from 'papaparse';
+import _ from 'lodash';
+
+// Funções auxiliares para limpeza
+const normalizarCampo = (obj, chaves) => {
+  for (const chave of chaves) {
+    if (obj[chave] !== undefined) return obj[chave];
+  }
+  return null;
+};
+
+const getPeso = (obj) => normalizarCampo(obj, ['PESO', 'peso', 'Peso']);
+const getAnimal = (obj) => normalizarCampo(obj, ['ANIMAL', 'animal', 'Animal']);
+const getDataPesagem = (obj) => normalizarCampo(obj, ['DATA', 'DATA_PESAGEM', 'data_pesagem', 'Data_Pesagem']);
+const getSexo = (obj) => normalizarCampo(obj, ['SX', 'sx', 'Sx', 'SEXO', 'sexo', 'Sexo']) ?? 'N/A';
+const getLocal = (obj) => normalizarCampo(obj, ['LOCAL', 'local', 'Local']) ?? 'N/A';
+const getMeses = (obj) => normalizarCampo(obj, ['MESES', 'meses', 'Meses']) ?? 0;
+
+const AnimalWeightAnalyzer = () => {
+  const [data, setData] = useState(null);
+  const [processedData, setProcessedData] = useState(null);
+
+  const parseDate = useCallback((dateStr) => {
+    if (!dateStr) return null;
+    const dateString = dateStr.toString().trim();
+    if (!isNaN(dateString) && dateString.length > 4) {
+      const excelEpoch = new Date(1900, 0, 1);
+      return new Date(excelEpoch.getTime() + ((parseInt(dateString) - 2) * 86400000));
+    }
+    const match = dateString.match(/(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})/);
+    if (match) {
+      const [_, d, m, y] = match.map(Number);
+      return new Date(y < 100 ? 2000 + y : y, m - 1, d);
+    }
+    const date = new Date(dateString);
+    return isNaN(date.getTime()) ? null : date;
+  }, []);
+
+  const calculateWeightGain = useCallback((rawData) => {
+    try {
+      if (!rawData || rawData.length === 0) throw new Error('Nenhum dado fornecido');
+      const grouped = _.groupBy(rawData, row => getAnimal(row)?.toString().trim() || 'UNKNOWN');
+      const results = [];
+      for (const [animalName, records] of Object.entries(grouped)) {
+        if (records.length < 2) continue;
+        const sorted = records
+          .map(r => ({
+            ...r,
+            parsedDate: parseDate(getDataPesagem(r))
+          }))
+          .filter(r => r.parsedDate && !isNaN(getPeso(r)))
+          .sort((a, b) => a.parsedDate - b.parsedDate);
+        if (sorted.length < 2) continue;
+
+        const gains = [];
+        for (let i = 1; i < sorted.length; i++) {
+          const prev = sorted[i - 1];
+          const curr = sorted[i];
+          const days = (curr.parsedDate - prev.parsedDate) / 86400000;
+          const p1 = getPeso(prev);
+          const p2 = getPeso(curr);
+          if (days > 0 && !isNaN(p1) && !isNaN(p2)) {
+            gains.push((p2 - p1) / days);
+          }
+        }
+
+        if (gains.length > 0) {
+          const avg = _.mean(gains);
+          const last = sorted[sorted.length - 1];
+          const first = sorted[0];
+          results.push({
+            animal: animalName,
+            local: getLocal(last).toString(),
+            sexo: getSexo(last).toString().toUpperCase().trim(),
+            meses: getMeses(last),
+            ganho_diario: parseFloat(avg.toFixed(4)),
+            total_pesagens: sorted.length,
+            peso_inicial: getPeso(first),
+            peso_final: getPeso(last),
+            ganho_total: getPeso(last) - getPeso(first),
+            periodo_dias: (last.parsedDate - first.parsedDate) / 86400000
+          });
+        }
+      }
+      setProcessedData(results);
+    } catch (err) {
+      console.error('Erro ao calcular:', err);
+    }
+  }, [parseDate]);
+
+  const processFile = useCallback((file) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        let parsed;
+        if (file.name.endsWith('.csv')) {
+          const csv = e.target.result;
+          parsed = Papa.parse(csv, { header: true, dynamicTyping: true }).data;
+        } else {
+          const workbook = XLSX.read(e.target.result, { type: 'array' });
+          const sheet = workbook.Sheets[workbook.SheetNames[0]];
+          parsed = XLSX.utils.sheet_to_json(sheet);
+        }
+        parsed = parsed.map(row => {
+          const clean = {};
+          Object.keys(row).forEach(k => {
+            clean[k.trim().toUpperCase()] = row[k];
+          });
+          return clean;
+        });
+        setData(parsed);
+        calculateWeightGain(parsed);
+      } catch (e) {
+        console.error('Erro ao processar:', e);
+      }
+    };
+    if (file.name.endsWith('.csv')) reader.readAsText(file);
+    else reader.readAsArrayBuffer(file);
+  }, [calculateWeightGain]);
+
+  const handleFileUpload = useCallback((event) => {
+    const file = event.target.files[0];
+    if (file) processFile(file);
+  }, [processFile]);
+
+  return (
+    <div>
+      <h1>Analisador de Peso Animal</h1>
+      <input type="file" onChange={handleFileUpload} accept=".csv, .xlsx, .xls" />
+      {!processedData && <p>Importe uma planilha para começar.</p>}
+      {processedData && <pre>{JSON.stringify(processedData, null, 2)}</pre>}
+    </div>
+  );
+};
+
+export default AnimalWeightAnalyzer;
