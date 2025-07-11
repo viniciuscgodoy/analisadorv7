@@ -781,770 +781,769 @@ const AnimalWeightAnalyzer = () => {
             {/* Dashboard com Tabs */}
             <Tabs defaultValue="overview" className="w-full">
               <TabsList className="grid w-full grid-cols-6 bg-white/80 backdrop-blur-sm border border-green-200">
-              <TabsTrigger value="overview" className="tab-enhanced">📊 Visão Geral</TabsTrigger>
-              <TabsTrigger value="individual" className="tab-enhanced">🐄 Individual</TabsTrigger>
-              <TabsTrigger value="statistics" className="tab-enhanced">📈 Estatísticas</TabsTrigger>
-              <TabsTrigger value="comparisons" className="tab-enhanced">⚖️ Comparações</TabsTrigger>
-              <TabsTrigger value="advanced" className="tab-enhanced">🔬 Avançado</TabsTrigger>
-              <TabsTrigger value="details" className="tab-enhanced">📋 Detalhes</TabsTrigger>
-            </TabsList>
+                <TabsTrigger value="overview" className="tab-enhanced">📊 Visão Geral</TabsTrigger>
+                <TabsTrigger value="individual" className="tab-enhanced">🐄 Individual</TabsTrigger>
+                <TabsTrigger value="statistics" className="tab-enhanced">📈 Estatísticas</TabsTrigger>
+                <TabsTrigger value="comparisons" className="tab-enhanced">⚖️ Comparações</TabsTrigger>
+                <TabsTrigger value="advanced" className="tab-enhanced">🔬 Avançado</TabsTrigger>
+                <TabsTrigger value="details" className="tab-enhanced">📋 Detalhes</TabsTrigger>
+              </TabsList>
 
-            {/* Tab: Visão Geral */}
-            <TabsContent value="overview" className="space-y-6">
-              {/* KPIs Principais */}
-              <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
-                <Card className="stats-card">
-                  <CardContent className="p-6">
-                    <div className="flex items-center gap-3 mb-2">
-                      <Target className="h-6 w-6 text-blue-600" />
-                      <h3 className="font-bold text-blue-800">Total</h3>
-                    </div>
-                    <p className="text-3xl font-bold text-blue-600">{filteredData.length}</p>
-                    <p className="text-sm text-blue-500 font-medium">animais analisados</p>
-                  </CardContent>
-                </Card>
-                <Card className="stats-card">
-                  <CardContent className="p-6">
-                    <div className="flex items-center gap-3 mb-2">
-                      <TrendingUp className="h-6 w-6 text-green-600" />
-                      <h3 className="font-bold text-green-800">Média</h3>
-                    </div>
-                    <p className="text-3xl font-bold text-green-600">{media}</p>
-                    <p className="text-sm text-green-500 font-medium">kg/dia</p>
-                  </CardContent>
-                </Card>
-                <Card className="stats-card">
-                  <CardContent className="p-6">
-                    <div className="flex items-center gap-3 mb-2">
-                      <Zap className="h-6 w-6 text-purple-600" />
-                      <h3 className="font-bold text-purple-800">Acima</h3>
-                    </div>
-                    <p className="text-3xl font-bold text-purple-600">
-                      {filteredData.filter(item => item.ganho_diario >= media).length}
-                    </p>
-                    <p className="text-sm text-purple-500 font-medium">da média</p>
-                  </CardContent>
-                </Card>
-                <Card className="stats-card">
-                  <CardContent className="p-6">
-                    <div className="flex items-center gap-3 mb-2">
-                      <TrendingDown className="h-6 w-6 text-red-600" />
-                      <h3 className="font-bold text-red-800">Abaixo</h3>
-                    </div>
-                    <p className="text-3xl font-bold text-red-600">
-                      {filteredData.filter(item => item.ganho_diario < media).length}
-                    </p>
-                    <p className="text-sm text-red-500 font-medium">da média</p>
-                  </CardContent>
-                </Card>
-                {stats && (
+              {/* Tab: Visão Geral */}
+              <TabsContent value="overview" className="space-y-6">
+                {/* KPIs Principais */}
+                <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
                   <Card className="stats-card">
                     <CardContent className="p-6">
                       <div className="flex items-center gap-3 mb-2">
-                        <AlertTriangle className="h-6 w-6 text-orange-600" />
-                        <h3 className="font-bold text-orange-800">Outliers</h3>
+                        <Target className="h-6 w-6 text-blue-600" />
+                        <h3 className="font-bold text-blue-800">Total</h3>
                       </div>
-                      <p className="text-3xl font-bold text-orange-600">{stats.outliers.length}</p>
-                      <p className="text-sm text-orange-500 font-medium">atípicos</p>
+                      <p className="text-3xl font-bold text-blue-600">{getFilteredData.length}</p>
+                      <p className="text-sm text-blue-500 font-medium">animais analisados</p>
                     </CardContent>
                   </Card>
-                )}
-                {stats && (
                   <Card className="stats-card">
                     <CardContent className="p-6">
                       <div className="flex items-center gap-3 mb-2">
-                        <Activity className="h-6 w-6 text-indigo-600" />
-                        <h3 className="font-bold text-indigo-800">CV</h3>
+                        <TrendingUp className="h-6 w-6 text-green-600" />
+                        <h3 className="font-bold text-green-800">Média</h3>
                       </div>
-                      <p className="text-3xl font-bold text-indigo-600">{stats.coefVariacao}%</p>
-                      <p className="text-sm text-indigo-500 font-medium">variação</p>
+                      <p className="text-3xl font-bold text-green-600">{getScatterData.media}</p>
+                      <p className="text-sm text-green-500 font-medium">kg/dia</p>
                     </CardContent>
                   </Card>
-                )}
-              </div>
-
-              {/* Indicadores de Performance */}
-              {performanceIndicators && (
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Distribuição de Performance</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                      <div className="text-center">
-                        <div className="text-2xl font-bold text-green-600">{performanceIndicators.excelentes.count}</div>
-                        <div className="text-sm text-gray-600">Excelentes ({performanceIndicators.excelentes.percent}%)</div>
-                        <Progress value={parseFloat(performanceIndicators.excelentes.percent)} className="mt-2" />
+                  <Card className="stats-card">
+                    <CardContent className="p-6">
+                      <div className="flex items-center gap-3 mb-2">
+                        <Zap className="h-6 w-6 text-purple-600" />
+                        <h3 className="font-bold text-purple-800">Acima</h3>
                       </div>
-                      <div className="text-center">
-                        <div className="text-2xl font-bold text-blue-600">{performanceIndicators.bons.count}</div>
-                        <div className="text-sm text-gray-600">Bons ({performanceIndicators.bons.percent}%)</div>
-                        <Progress value={parseFloat(performanceIndicators.bons.percent)} className="mt-2" />
+                      <p className="text-3xl font-bold text-purple-600">
+                        {getFilteredData.filter(item => item.ganho_diario >= getScatterData.media).length}
+                      </p>
+                      <p className="text-sm text-purple-500 font-medium">da média</p>
+                    </CardContent>
+                  </Card>
+                  <Card className="stats-card">
+                    <CardContent className="p-6">
+                      <div className="flex items-center gap-3 mb-2">
+                        <TrendingDown className="h-6 w-6 text-red-600" />
+                        <h3 className="font-bold text-red-800">Abaixo</h3>
                       </div>
-                      <div className="text-center">
-                        <div className="text-2xl font-bold text-yellow-600">{performanceIndicators.regulares.count}</div>
-                        <div className="text-sm text-gray-600">Regulares ({performanceIndicators.regulares.percent}%)</div>
-                        <Progress value={parseFloat(performanceIndicators.regulares.percent)} className="mt-2" />
-                      </div>
-                      <div className="text-center">
-                        <div className="text-2xl font-bold text-red-600">{performanceIndicators.ruins.count}</div>
-                        <div className="text-sm text-gray-600">Ruins ({performanceIndicators.ruins.percent}%)</div>
-                        <Progress value={parseFloat(performanceIndicators.ruins.percent)} className="mt-2" />
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
-
-              {/* Gráfico de Dispersão Principal */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <BarChart3 className="text-blue-600" />
-                    Ganho de Peso Diário por Animal
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <ResponsiveContainer width="100%" height={400}>
-                    <ScatterChart margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis 
-                        type="number" 
-                        dataKey="x" 
-                        name="Animal" 
-                        domain={[0, scatterData.length + 1]}
-                        label={{ value: 'Animais (ordem)', position: 'insideBottom', offset: -10 }}
-                      />
-                      <YAxis 
-                        type="number" 
-                        dataKey="y" 
-                        name="Ganho"
-                        label={{ value: 'Ganho diário (kg/dia)', angle: -90, position: 'insideLeft' }}
-                      />
-                      <Tooltip content={<CustomTooltip />} />
-                      <Legend />
-                      
-                      <ReferenceLine 
-                        y={media} 
-                        stroke="#666" 
-                        strokeDasharray="5 5" 
-                        label={{ value: `Média: ${media} kg/dia`, position: 'topRight' }}
-                      />
-                      
-                      {stats && (
-                        <>
-                          <ReferenceLine 
-                            y={stats.q1} 
-                            stroke="#f59e0b" 
-                            strokeDasharray="2 2" 
-                            label={{ value: `Q1: ${stats.q1}`, position: 'topLeft' }}
-                          />
-                          <ReferenceLine 
-                            y={stats.q3} 
-                            stroke="#f59e0b" 
-                            strokeDasharray="2 2" 
-                            label={{ value: `Q3: ${stats.q3}`, position: 'topLeft' }}
-                          />
-                        </>
-                      )}
-                      
-                      <Scatter
-                        name="Acima da média"
-                        data={scatterData.filter(item => item.acima_media)}
-                        fill="#10b981"
-                      />
-                      
-                      <Scatter
-                        name="Abaixo da média"
-                        data={scatterData.filter(item => !item.acima_media)}
-                        fill="#ef4444"
-                      />
-                    </ScatterChart>
-                  </ResponsiveContainer>
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            {/* Tab: Análise Individual */}
-            <TabsContent value="individual" className="space-y-6">
-              <Card className="card-enhanced">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2 text-green-700">
-                    🐄 Análise Individual por Animal
-                  </CardTitle>
-                  <CardDescription>
-                    Selecione um animal para visualizar seu histórico de peso e tendência de ganho ao longo do tempo
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="mb-6">
-                    <label className="block text-sm font-semibold text-green-700 mb-3">
-                      <span className="flex items-center gap-2">
-                        🔍 Selecionar Animal:
-                      </span>
-                    </label>
-                    <Select value={selectedAnimal} onValueChange={setSelectedAnimal}>
-                      <SelectTrigger className="input-enhanced max-w-md">
-                        <SelectValue placeholder="Escolha um animal para análise" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">Selecione um animal</SelectItem>
-                        {uniqueAnimals.map(animal => (
-                          <SelectItem key={animal} value={animal}>
-                            🐄 {animal}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  {selectedAnimal !== 'all' && (
-                    <div className="space-y-6 fade-in">
-                      {(() => {
-                        const animalHistory = getAnimalHistoryData(selectedAnimal);
-                        const animalInfo = processedData?.find(item => item.animal === selectedAnimal);
-                        
-                        if (animalHistory.length === 0) {
-                          return (
-                            <Alert className="alert-enhanced">
-                              <AlertTriangle className="h-5 w-5 text-orange-600" />
-                              <AlertDescription>
-                                Não foram encontrados dados suficientes para o animal selecionado.
-                              </AlertDescription>
-                            </Alert>
-                          );
-                        }
-
-                        return (
-                          <>
-                            {/* Informações do Animal */}
-                            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                              <Card className="stats-card">
-                                <CardContent className="p-4">
-                                  <div className="flex items-center gap-2 mb-2">
-                                    <Target className="h-5 w-5 text-blue-600" />
-                                    <h3 className="font-bold text-blue-800">Animal</h3>
-                                  </div>
-                                  <p className="text-2xl font-bold text-blue-600">{selectedAnimal}</p>
-                                  <p className="text-sm text-blue-500">identificação</p>
-                                </CardContent>
-                              </Card>
-                              
-                              {animalInfo && (
-                                <>
-                                  <Card className="stats-card">
-                                    <CardContent className="p-4">
-                                      <div className="flex items-center gap-2 mb-2">
-                                        <Users className="h-5 w-5 text-purple-600" />
-                                        <h3 className="font-bold text-purple-800">Sexo</h3>
-                                      </div>
-                                      <p className="text-2xl font-bold text-purple-600">
-                                        {animalInfo.sexo === 'M' ? '🐂' : animalInfo.sexo === 'F' ? '🐄' : animalInfo.sexo}
-                                      </p>
-                                      <p className="text-sm text-purple-500">
-                                        {animalInfo.sexo === 'M' ? 'Macho' : animalInfo.sexo === 'F' ? 'Fêmea' : 'N/A'}
-                                      </p>
-                                    </CardContent>
-                                  </Card>
-                                  
-                                  <Card className="stats-card">
-                                    <CardContent className="p-4">
-                                      <div className="flex items-center gap-2 mb-2">
-                                        <Calendar className="h-5 w-5 text-green-600" />
-                                        <h3 className="font-bold text-green-800">Idade</h3>
-                                      </div>
-                                      <p className="text-2xl font-bold text-green-600">{animalInfo.meses}</p>
-                                      <p className="text-sm text-green-500">meses</p>
-                                    </CardContent>
-                                  </Card>
-                                  
-                                  <Card className="stats-card">
-                                    <CardContent className="p-4">
-                                      <div className="flex items-center gap-2 mb-2">
-                                        <TrendingUp className="h-5 w-5 text-orange-600" />
-                                        <h3 className="font-bold text-orange-800">GPD</h3>
-                                      </div>
-                                      <p className="text-2xl font-bold text-orange-600">{animalInfo.ganho_diario}</p>
-                                      <p className="text-sm text-orange-500">kg/dia</p>
-                                    </CardContent>
-                                  </Card>
-                                </>
-                              )}
-                            </div>
-
-                            {/* Gráfico de Evolução do Peso */}
-                            <Card className="chart-container">
-                              <CardHeader>
-                                <CardTitle className="flex items-center gap-2">
-                                  📈 Evolução do Peso - {selectedAnimal}
-                                </CardTitle>
-                                <CardDescription>
-                                  Histórico de pesagens e tendência de ganho de peso ao longo do tempo
-                                </CardDescription>
-                              </CardHeader>
-                              <CardContent>
-                                <ResponsiveContainer width="100%" height={400}>
-                                  <LineChart data={animalHistory} margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>
-                                    <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-                                    <XAxis 
-                                      dataKey="data" 
-                                      stroke="#64748b"
-                                      fontSize={12}
-                                      angle={-45}
-                                      textAnchor="end"
-                                      height={80}
-                                    />
-                                    <YAxis 
-                                      stroke="#64748b"
-                                      fontSize={12}
-                                      label={{ value: 'Peso (kg)', angle: -90, position: 'insideLeft' }}
-                                    />
-                                    <Tooltip 
-                                      contentStyle={{
-                                        backgroundColor: 'white',
-                                        border: '1px solid #e2e8f0',
-                                        borderRadius: '8px',
-                                        boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
-                                      }}
-                                      formatter={(value, name) => [
-                                        `${value} kg`,
-                                        name === 'peso' ? 'Peso' : 'Ganho Acumulado'
-                                      ]}
-                                      labelFormatter={(label) => `Data: ${label}`}
-                                    />
-                                    <Legend />
-                                    <Line 
-                                      type="monotone" 
-                                      dataKey="peso" 
-                                      stroke="#10b981" 
-                                      strokeWidth={3}
-                                      dot={{ fill: '#10b981', strokeWidth: 2, r: 6 }}
-                                      activeDot={{ r: 8, stroke: '#059669', strokeWidth: 2 }}
-                                      name="Peso (kg)"
-                                    />
-                                    <Line 
-                                      type="monotone" 
-                                      dataKey="ganho_acumulado" 
-                                      stroke="#3b82f6" 
-                                      strokeWidth={2}
-                                      strokeDasharray="5 5"
-                                      dot={{ fill: '#3b82f6', strokeWidth: 2, r: 4 }}
-                                      name="Ganho Acumulado (kg)"
-                                    />
-                                  </LineChart>
-                                </ResponsiveContainer>
-                              </CardContent>
-                            </Card>
-
-                            {/* Tabela de Histórico Detalhado */}
-                            <Card className="table-enhanced">
-                              <CardHeader>
-                                <CardTitle className="flex items-center gap-2">
-                                  📋 Histórico Detalhado de Pesagens
-                                </CardTitle>
-                              </CardHeader>
-                              <CardContent>
-                                <div className="overflow-x-auto">
-                                  <table className="w-full">
-                                    <thead>
-                                      <tr>
-                                        <th className="text-left p-3 font-semibold text-green-700">Data</th>
-                                        <th className="text-left p-3 font-semibold text-green-700">Peso (kg)</th>
-                                        <th className="text-left p-3 font-semibold text-green-700">Ganho do Período (kg)</th>
-                                        <th className="text-left p-3 font-semibold text-green-700">Ganho Acumulado (kg)</th>
-                                        <th className="text-left p-3 font-semibold text-green-700">Dias desde Início</th>
-                                      </tr>
-                                    </thead>
-                                    <tbody>
-                                      {animalHistory.map((record, index) => (
-                                        <tr key={index} className="border-b border-green-100 hover:bg-green-50 transition-colors">
-                                          <td className="p-3">{record.data}</td>
-                                          <td className="p-3 font-semibold">{record.peso}</td>
-                                          <td className="p-3">
-                                            <span className={`font-medium ${record.ganho_periodo >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                                              {record.ganho_periodo > 0 ? '+' : ''}{record.ganho_periodo.toFixed(1)}
-                                            </span>
-                                          </td>
-                                          <td className="p-3">
-                                            <span className={`font-medium ${record.ganho_acumulado >= 0 ? 'text-blue-600' : 'text-red-600'}`}>
-                                              {record.ganho_acumulado > 0 ? '+' : ''}{record.ganho_acumulado.toFixed(1)}
-                                            </span>
-                                          </td>
-                                          <td className="p-3 text-gray-600">{record.dias_desde_inicio}</td>
-                                        </tr>
-                                      ))}
-                                    </tbody>
-                                  </table>
-                                </div>
-                              </CardContent>
-                            </Card>
-                          </>
-                        );
-                      })()}
-                    </div>
+                      <p className="text-3xl font-bold text-red-600">
+                        {getFilteredData.filter(item => item.ganho_diario < getScatterData.media).length}
+                      </p>
+                      <p className="text-sm text-red-500 font-medium">da média</p>
+                    </CardContent>
+                  </Card>
+                  {getStatisticalAnalysis && (
+                    <Card className="stats-card">
+                      <CardContent className="p-6">
+                        <div className="flex items-center gap-3 mb-2">
+                          <AlertTriangle className="h-6 w-6 text-orange-600" />
+                          <h3 className="font-bold text-orange-800">Outliers</h3>
+                        </div>
+                        <p className="text-3xl font-bold text-orange-600">{getStatisticalAnalysis.outliers.length}</p>
+                        <p className="text-sm text-orange-500 font-medium">atípicos</p>
+                      </CardContent>
+                    </Card>
                   )}
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            {/* Tab: Estatísticas */}
-            <TabsContent value="statistics" className="space-y-6">
-              {stats && (
-                <>
-                  {/* Estatísticas Descritivas */}
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <Card>
-                      <CardHeader>
-                        <CardTitle>Medidas de Tendência Central</CardTitle>
-                      </CardHeader>
-                      <CardContent className="space-y-3">
-                        <div className="flex justify-between">
-                          <span>Média:</span>
-                          <span className="font-semibold">{stats.media} kg/dia</span>
+                  {getStatisticalAnalysis && (
+                    <Card className="stats-card">
+                      <CardContent className="p-6">
+                        <div className="flex items-center gap-3 mb-2">
+                          <Activity className="h-6 w-6 text-indigo-600" />
+                          <h3 className="font-bold text-indigo-800">CV</h3>
                         </div>
-                        <div className="flex justify-between">
-                          <span>Mediana:</span>
-                          <span className="font-semibold">{stats.mediana} kg/dia</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span>Mínimo:</span>
-                          <span className="font-semibold">{stats.min.toFixed(4)} kg/dia</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span>Máximo:</span>
-                          <span className="font-semibold">{stats.max.toFixed(4)} kg/dia</span>
-                        </div>
+                        <p className="text-3xl font-bold text-indigo-600">{getStatisticalAnalysis.coefVariacao}%</p>
+                        <p className="text-sm text-indigo-500 font-medium">variação</p>
                       </CardContent>
                     </Card>
+                  )}
+                </div>
 
-                    <Card>
-                      <CardHeader>
-                        <CardTitle>Medidas de Dispersão</CardTitle>
-                      </CardHeader>
-                      <CardContent className="space-y-3">
-                        <div className="flex justify-between">
-                          <span>Desvio Padrão:</span>
-                          <span className="font-semibold">{stats.desvio} kg/dia</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span>Coef. Variação:</span>
-                          <span className="font-semibold">{stats.coefVariacao}%</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span>Amplitude IQR:</span>
-                          <span className="font-semibold">{stats.iqr} kg/dia</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span>Outliers:</span>
-                          <span className="font-semibold text-orange-600">{stats.outliers.length}</span>
-                        </div>
-                      </CardContent>
-                    </Card>
-
-                    <Card>
-                      <CardHeader>
-                        <CardTitle>Quartis</CardTitle>
-                      </CardHeader>
-                      <CardContent className="space-y-3">
-                        <div className="flex justify-between">
-                          <span>Q1 (25%):</span>
-                          <span className="font-semibold">{stats.q1} kg/dia</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span>Q2 (50%):</span>
-                          <span className="font-semibold">{stats.mediana} kg/dia</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span>Q3 (75%):</span>
-                          <span className="font-semibold">{stats.q3} kg/dia</span>
-                        </div>
-                        <div className="text-sm text-gray-600 mt-2">
-                          50% dos animais têm ganho entre {stats.q1} e {stats.q3} kg/dia
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </div>
-
-                  {/* Distribuição de Frequência */}
+                {/* Indicadores de Performance */}
+                {getPerformanceIndicators && (
                   <Card>
                     <CardHeader>
                       <CardTitle>Distribuição de Performance</CardTitle>
                     </CardHeader>
                     <CardContent>
+                      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                        <div className="text-center">
+                          <div className="text-2xl font-bold text-green-600">{getPerformanceIndicators.excelentes.count}</div>
+                          <div className="text-sm text-gray-600">Excelentes ({getPerformanceIndicators.excelentes.percent}%)</div>
+                          <Progress value={parseFloat(getPerformanceIndicators.excelentes.percent)} className="mt-2" />
+                        </div>
+                        <div className="text-center">
+                          <div className="text-2xl font-bold text-blue-600">{getPerformanceIndicators.bons.count}</div>
+                          <div className="text-sm text-gray-600">Bons ({getPerformanceIndicators.bons.percent}%)</div>
+                          <Progress value={parseFloat(getPerformanceIndicators.bons.percent)} className="mt-2" />
+                        </div>
+                        <div className="text-center">
+                          <div className="text-2xl font-bold text-yellow-600">{getPerformanceIndicators.regulares.count}</div>
+                          <div className="text-sm text-gray-600">Regulares ({getPerformanceIndicators.regulares.percent}%)</div>
+                          <Progress value={parseFloat(getPerformanceIndicators.regulares.percent)} className="mt-2" />
+                        </div>
+                        <div className="text-center">
+                          <div className="text-2xl font-bold text-red-600">{getPerformanceIndicators.ruins.count}</div>
+                          <div className="text-sm text-gray-600">Ruins ({getPerformanceIndicators.ruins.percent}%)</div>
+                          <Progress value={parseFloat(getPerformanceIndicators.ruins.percent)} className="mt-2" />
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+
+                {/* Gráfico de Dispersão Principal */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <BarChart3 className="text-blue-600" />
+                      Ganho de Peso Diário por Animal
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <ResponsiveContainer width="100%" height={400}>
+                      <ScatterChart margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis 
+                          type="number" 
+                          dataKey="x" 
+                          name="Animal" 
+                          domain={[0, getScatterData.data.length + 1]}
+                          label={{ value: 'Animais (ordem)', position: 'insideBottom', offset: -10 }}
+                        />
+                        <YAxis 
+                          type="number" 
+                          dataKey="y" 
+                          name="Ganho"
+                          label={{ value: 'Ganho diário (kg/dia)', angle: -90, position: 'insideLeft' }}
+                        />
+                        <Tooltip content={<CustomTooltip />} />
+                        <Legend />
+                        
+                        <ReferenceLine 
+                          y={getScatterData.media} 
+                          stroke="#666" 
+                          strokeDasharray="5 5" 
+                          label={{ value: `Média: ${getScatterData.media} kg/dia`, position: 'topRight' }}
+                        />
+                        
+                        {getStatisticalAnalysis && (
+                          <>
+                            <ReferenceLine 
+                              y={getStatisticalAnalysis.q1} 
+                              stroke="#f59e0b" 
+                              strokeDasharray="2 2" 
+                              label={{ value: `Q1: ${getStatisticalAnalysis.q1}`, position: 'topLeft' }}
+                            />
+                            <ReferenceLine 
+                              y={getStatisticalAnalysis.q3} 
+                              stroke="#f59e0b" 
+                              strokeDasharray="2 2" 
+                              label={{ value: `Q3: ${getStatisticalAnalysis.q3}`, position: 'topLeft' }}
+                            />
+                          </>
+                        )}
+                        
+                        <Scatter
+                          name="Acima da média"
+                          data={getScatterData.data.filter(item => item.acima_media)}
+                          fill="#10b981"
+                        />
+                        
+                        <Scatter
+                          name="Abaixo da média"
+                          data={getScatterData.data.filter(item => !item.acima_media)}
+                          fill="#ef4444"
+                        />
+                      </ScatterChart>
+                    </ResponsiveContainer>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+              {/* Tab: Análise Individual */}
+              <TabsContent value="individual" className="space-y-6">
+                <Card className="card-enhanced">
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2 text-green-700">
+                      🐄 Análise Individual por Animal
+                    </CardTitle>
+                    <CardDescription>
+                      Selecione um animal para visualizar seu histórico de peso e tendência de ganho ao longo do tempo
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="mb-6">
+                      <label className="block text-sm font-semibold text-green-700 mb-3">
+                        <span className="flex items-center gap-2">
+                          🔍 Selecionar Animal:
+                        </span>
+                      </label>
+                      <Select value={selectedAnimal} onValueChange={setSelectedAnimal}>
+                        <SelectTrigger className="input-enhanced max-w-md">
+                          <SelectValue placeholder="Escolha um animal para análise" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">Selecione um animal</SelectItem>
+                          {uniqueAnimals.map(animal => (
+                            <SelectItem key={animal} value={animal}>
+                              🐄 {animal}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    {selectedAnimal !== 'all' && (
+                      <div className="space-y-6 fade-in">
+                        {(() => {
+                          const animalHistory = getAnimalHistoryData(selectedAnimal);
+                          const animalInfo = processedData?.find(item => item.animal === selectedAnimal);
+                          
+                          if (animalHistory.length === 0) {
+                            return (
+                              <Alert className="alert-enhanced">
+                                <AlertTriangle className="h-5 w-5 text-orange-600" />
+                                <AlertDescription>
+                                  Não foram encontrados dados suficientes para o animal selecionado.
+                                </AlertDescription>
+                              </Alert>
+                            );
+                          }
+
+                          return (
+                            <>
+                              {/* Informações do Animal */}
+                              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                                <Card className="stats-card">
+                                  <CardContent className="p-4">
+                                    <div className="flex items-center gap-2 mb-2">
+                                      <Target className="h-5 w-5 text-blue-600" />
+                                      <h3 className="font-bold text-blue-800">Animal</h3>
+                                    </div>
+                                    <p className="text-2xl font-bold text-blue-600">{selectedAnimal}</p>
+                                    <p className="text-sm text-blue-500">identificação</p>
+                                  </CardContent>
+                                </Card>
+                                
+                                {animalInfo && (
+                                  <>
+                                    <Card className="stats-card">
+                                      <CardContent className="p-4">
+                                        <div className="flex items-center gap-2 mb-2">
+                                          <Users className="h-5 w-5 text-purple-600" />
+                                          <h3 className="font-bold text-purple-800">Sexo</h3>
+                                        </div>
+                                        <p className="text-2xl font-bold text-purple-600">
+                                          {animalInfo.sexo === 'M' ? '🐂' : animalInfo.sexo === 'F' ? '🐄' : animalInfo.sexo}
+                                        </p>
+                                        <p className="text-sm text-purple-500">
+                                          {animalInfo.sexo === 'M' ? 'Macho' : animalInfo.sexo === 'F' ? 'Fêmea' : 'N/A'}
+                                        </p>
+                                      </CardContent>
+                                    </Card>
+                                    
+                                    <Card className="stats-card">
+                                      <CardContent className="p-4">
+                                        <div className="flex items-center gap-2 mb-2">
+                                          <Calendar className="h-5 w-5 text-green-600" />
+                                          <h3 className="font-bold text-green-800">Idade</h3>
+                                        </div>
+                                        <p className="text-2xl font-bold text-green-600">{animalInfo.meses}</p>
+                                        <p className="text-sm text-green-500">meses</p>
+                                      </CardContent>
+                                    </Card>
+                                    
+                                    <Card className="stats-card">
+                                      <CardContent className="p-4">
+                                        <div className="flex items-center gap-2 mb-2">
+                                          <TrendingUp className="h-5 w-5 text-orange-600" />
+                                          <h3 className="font-bold text-orange-800">GPD</h3>
+                                        </div>
+                                        <p className="text-2xl font-bold text-orange-600">{animalInfo.ganho_diario}</p>
+                                        <p className="text-sm text-orange-500">kg/dia</p>
+                                      </CardContent>
+                                    </Card>
+                                  </>
+                                )}
+                              </div>
+
+                              {/* Gráfico de Evolução do Peso */}
+                              <Card className="chart-container">
+                                <CardHeader>
+                                  <CardTitle className="flex items-center gap-2">
+                                    📈 Evolução do Peso - {selectedAnimal}
+                                  </CardTitle>
+                                  <CardDescription>
+                                    Histórico de pesagens e tendência de ganho de peso ao longo do tempo
+                                  </CardDescription>
+                                </CardHeader>
+                                <CardContent>
+                                  <ResponsiveContainer width="100%" height={400}>
+                                    <LineChart data={animalHistory} margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>
+                                      <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                                      <XAxis 
+                                        dataKey="data" 
+                                        stroke="#64748b"
+                                        fontSize={12}
+                                        angle={-45}
+                                        textAnchor="end"
+                                        height={80}
+                                      />
+                                      <YAxis 
+                                        stroke="#64748b"
+                                        fontSize={12}
+                                        label={{ value: 'Peso (kg)', angle: -90, position: 'insideLeft' }}
+                                      />
+                                      <Tooltip 
+                                        contentStyle={{
+                                          backgroundColor: 'white',
+                                          border: '1px solid #e2e8f0',
+                                          borderRadius: '8px',
+                                          boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
+                                        }}
+                                        formatter={(value, name) => [
+                                          `${value} kg`,
+                                          name === 'peso' ? 'Peso' : 'Ganho Acumulado'
+                                        ]}
+                                        labelFormatter={(label) => `Data: ${label}`}
+                                      />
+                                      <Legend />
+                                      <Line 
+                                        type="monotone" 
+                                        dataKey="peso" 
+                                        stroke="#10b981" 
+                                        strokeWidth={3}
+                                        dot={{ fill: '#10b981', strokeWidth: 2, r: 6 }}
+                                        activeDot={{ r: 8, stroke: '#059669', strokeWidth: 2 }}
+                                        name="Peso (kg)"
+                                      />
+                                      <Line 
+                                        type="monotone" 
+                                        dataKey="ganho_acumulado" 
+                                        stroke="#3b82f6" 
+                                        strokeWidth={2}
+                                        strokeDasharray="5 5"
+                                        dot={{ fill: '#3b82f6', strokeWidth: 2, r: 4 }}
+                                        name="Ganho Acumulado (kg)"
+                                      />
+                                    </LineChart>
+                                  </ResponsiveContainer>
+                                </CardContent>
+                              </Card>
+
+                              {/* Tabela de Histórico Detalhado */}
+                              <Card className="table-enhanced">
+                                <CardHeader>
+                                  <CardTitle className="flex items-center gap-2">
+                                    📋 Histórico Detalhado de Pesagens
+                                  </CardTitle>
+                                </CardHeader>
+                                <CardContent>
+                                  <div className="overflow-x-auto">
+                                    <table className="w-full">
+                                      <thead>
+                                        <tr>
+                                          <th className="text-left p-3 font-semibold text-green-700">Data</th>
+                                          <th className="text-left p-3 font-semibold text-green-700">Peso (kg)</th>
+                                          <th className="text-left p-3 font-semibold text-green-700">Ganho do Período (kg)</th>
+                                          <th className="text-left p-3 font-semibold text-green-700">Ganho Acumulado (kg)</th>
+                                          <th className="text-left p-3 font-semibold text-green-700">Dias desde Início</th>
+                                        </tr>
+                                      </thead>
+                                      <tbody>
+                                        {animalHistory.map((record, index) => (
+                                          <tr key={index} className="border-b border-green-100 hover:bg-green-50 transition-colors">
+                                            <td className="p-3">{record.data}</td>
+                                            <td className="p-3 font-semibold">{record.peso}</td>
+                                            <td className="p-3">
+                                              <span className={`font-medium ${record.ganho_periodo >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                                                {record.ganho_periodo > 0 ? '+' : ''}{record.ganho_periodo.toFixed(1)}
+                                              </span>
+                                            </td>
+                                            <td className="p-3">
+                                              <span className={`font-medium ${record.ganho_acumulado >= 0 ? 'text-blue-600' : 'text-red-600'}`}>
+                                                {record.ganho_acumulado > 0 ? '+' : ''}{record.ganho_acumulado.toFixed(1)}
+                                              </span>
+                                            </td>
+                                            <td className="p-3 text-gray-600">{record.dias_desde_inicio}</td>
+                                          </tr>
+                                        ))}
+                                      </tbody>
+                                    </table>
+                                  </div>
+                                </CardContent>
+                              </Card>
+                            </>
+                          );
+                        })()}
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+              {/* Tab: Estatísticas */}
+              <TabsContent value="statistics" className="space-y-6">
+                {getStatisticalAnalysis && (
+                  <>
+                    {/* Estatísticas Descritivas */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                      <Card>
+                        <CardHeader>
+                          <CardTitle>Medidas de Tendência Central</CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-3">
+                          <div className="flex justify-between">
+                            <span>Média:</span>
+                            <span className="font-semibold">{getStatisticalAnalysis.media} kg/dia</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span>Mediana:</span>
+                            <span className="font-semibold">{getStatisticalAnalysis.mediana} kg/dia</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span>Mínimo:</span>
+                            <span className="font-semibold">{getStatisticalAnalysis.min.toFixed(4)} kg/dia</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span>Máximo:</span>
+                            <span className="font-semibold">{getStatisticalAnalysis.max.toFixed(4)} kg/dia</span>
+                          </div>
+                        </CardContent>
+                      </Card>
+
+                      <Card>
+                        <CardHeader>
+                          <CardTitle>Medidas de Dispersão</CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-3">
+                          <div className="flex justify-between">
+                            <span>Desvio Padrão:</span>
+                            <span className="font-semibold">{getStatisticalAnalysis.desvio} kg/dia</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span>Coef. Variação:</span>
+                            <span className="font-semibold">{getStatisticalAnalysis.coefVariacao}%</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span>Amplitude IQR:</span>
+                            <span className="font-semibold">{getStatisticalAnalysis.iqr} kg/dia</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span>Outliers:</span>
+                            <span className="font-semibold text-orange-600">{getStatisticalAnalysis.outliers.length}</span>
+                          </div>
+                        </CardContent>
+                      </Card>
+
+                      <Card>
+                        <CardHeader>
+                          <CardTitle>Quartis</CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-3">
+                          <div className="flex justify-between">
+                            <span>Q1 (25%):</span>
+                            <span className="font-semibold">{getStatisticalAnalysis.q1} kg/dia</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span>Q2 (50%):</span>
+                            <span className="font-semibold">{getStatisticalAnalysis.mediana} kg/dia</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span>Q3 (75%):</span>
+                            <span className="font-semibold">{getStatisticalAnalysis.q3} kg/dia</span>
+                          </div>
+                          <div className="text-sm text-gray-600 mt-2">
+                            50% dos animais têm ganho entre {getStatisticalAnalysis.q1} e {getStatisticalAnalysis.q3} kg/dia
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </div>
+
+                    {/* Distribuição de Frequência */}
+                    <Card>
+                      <CardHeader>
+                        <CardTitle>Distribuição de Performance</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <ResponsiveContainer width="100%" height={300}>
+                          <BarChart data={getStatisticalAnalysis.distribuicao}>
+                            <CartesianGrid strokeDasharray="3 3" />
+                            <XAxis dataKey="label" angle={-45} textAnchor="end" height={80} />
+                            <YAxis />
+                            <Tooltip />
+                            <Bar dataKey="count" fill="#3b82f6" />
+                          </BarChart>
+                        </ResponsiveContainer>
+                      </CardContent>
+                    </Card>
+
+                    {/* Gráfico de Pizza da Distribuição */}
+                    <Card>
+                      <CardHeader>
+                        <CardTitle>Distribuição Percentual de Performance</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <ResponsiveContainer width="100%" height={300}>
+                          <RechartsPieChart>
+                            <Tooltip />
+                            <Legend />
+                            <RechartsPieChart
+                              data={getStatisticalAnalysis.distribuicao.filter(d => d.count > 0)}
+                              cx="50%"
+                              cy="50%"
+                              outerRadius={80}
+                              dataKey="count"
+                              label={({ label, percent }) => `${label}: ${(percent * 100).toFixed(1)}%`}
+                            >
+                              {getStatisticalAnalysis.distribuicao.filter(d => d.count > 0).map((entry, index) => (
+                                <Cell key={`cell-${index}`} fill={entry.color} />
+                              ))}
+                            </RechartsPieChart>
+                          </RechartsPieChart>
+                        </ResponsiveContainer>
+                      </CardContent>
+                    </Card>
+                  </>
+                )}
+              </TabsContent>
+
+              {/* Tab: Comparações */}
+              <TabsContent value="comparisons" className="space-y-6">
+                {/* Comparação por Sexo */}
+                {getComparativeBySex.length > 1 && (
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Comparação por Sexo</CardTitle>
+                    </CardHeader>
+                    <CardContent>
                       <ResponsiveContainer width="100%" height={300}>
-                        <BarChart data={stats.distribuicao}>
+                        <BarChart data={getComparativeBySex}>
                           <CartesianGrid strokeDasharray="3 3" />
-                          <XAxis dataKey="label" angle={-45} textAnchor="end" height={80} />
+                          <XAxis dataKey="sexo" />
                           <YAxis />
                           <Tooltip />
-                          <Bar dataKey="count" fill="#3b82f6" />
+                          <Legend />
+                          <Bar dataKey="media" fill="#3b82f6" name="Média (kg/dia)" />
+                          <Bar dataKey="count" fill="#10b981" name="Quantidade" />
                         </BarChart>
                       </ResponsiveContainer>
                     </CardContent>
                   </Card>
+                )}
 
-                  {/* Gráfico de Pizza da Distribuição */}
+                {/* Comparação por Faixa Etária */}
+                {getComparativeByAge.length > 0 && (
                   <Card>
                     <CardHeader>
-                      <CardTitle>Distribuição Percentual de Performance</CardTitle>
+                      <CardTitle>Comparação por Faixa Etária</CardTitle>
                     </CardHeader>
                     <CardContent>
                       <ResponsiveContainer width="100%" height={300}>
-                        <RechartsPieChart>
+                        <BarChart data={getComparativeByAge}>
+                          <CartesianGrid strokeDasharray="3 3" />
+                          <XAxis dataKey="faixa" angle={-45} textAnchor="end" height={80} />
+                          <YAxis />
                           <Tooltip />
                           <Legend />
-                          <RechartsPieChart
-                            data={stats.distribuicao.filter(d => d.count > 0)}
-                            cx="50%"
-                            cy="50%"
-                            outerRadius={80}
-                            dataKey="count"
-                            label={({ label, percent }) => `${label}: ${(percent * 100).toFixed(1)}%`}
-                          >
-                            {stats.distribuicao.filter(d => d.count > 0).map((entry, index) => (
-                              <Cell key={`cell-${index}`} fill={entry.color} />
-                            ))}
-                          </RechartsPieChart>
-                        </RechartsPieChart>
+                          <Bar dataKey="media" fill="#8b5cf6" name="Média (kg/dia)" />
+                          <Bar dataKey="count" fill="#f59e0b" name="Quantidade" />
+                        </BarChart>
                       </ResponsiveContainer>
                     </CardContent>
                   </Card>
-                </>
-              )}
-            </TabsContent>
+                )}
 
-            {/* Tab: Comparações */}
-            <TabsContent value="comparisons" className="space-y-6">
-              {/* Comparação por Sexo */}
-              {comparativeSex.length > 1 && (
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Comparação por Sexo</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <ResponsiveContainer width="100%" height={300}>
-                      <BarChart data={comparativeSex}>
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis dataKey="sexo" />
-                        <YAxis />
-                        <Tooltip />
-                        <Legend />
-                        <Bar dataKey="media" fill="#3b82f6" name="Média (kg/dia)" />
-                        <Bar dataKey="count" fill="#10b981" name="Quantidade" />
-                      </BarChart>
-                    </ResponsiveContainer>
-                  </CardContent>
-                </Card>
-              )}
+                {/* Tabela Comparativa */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {getComparativeBySex.length > 1 && (
+                    <Card>
+                      <CardHeader>
+                        <CardTitle>Estatísticas por Sexo</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="overflow-x-auto">
+                          <table className="min-w-full table-auto">
+                            <thead className="bg-gray-50">
+                              <tr>
+                                <th className="px-4 py-2 text-left">Sexo</th>
+                                <th className="px-4 py-2 text-left">Quantidade</th>
+                                <th className="px-4 py-2 text-left">Média</th>
+                                <th className="px-4 py-2 text-left">Desvio</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {getComparativeBySex.map((item, index) => (
+                                <tr key={index} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
+                                  <td className="px-4 py-2 font-medium">{item.sexo}</td>
+                                  <td className="px-4 py-2">{item.count}</td>
+                                  <td className="px-4 py-2">{item.media} kg/dia</td>
+                                  <td className="px-4 py-2">{item.desvio} kg/dia</td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  )}
 
-              {/* Comparação por Faixa Etária */}
-              {comparativeAge.length > 0 && (
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Comparação por Faixa Etária</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <ResponsiveContainer width="100%" height={300}>
-                      <BarChart data={comparativeAge}>
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis dataKey="faixa" angle={-45} textAnchor="end" height={80} />
-                        <YAxis />
-                        <Tooltip />
-                        <Legend />
-                        <Bar dataKey="media" fill="#8b5cf6" name="Média (kg/dia)" />
-                        <Bar dataKey="count" fill="#f59e0b" name="Quantidade" />
-                      </BarChart>
-                    </ResponsiveContainer>
-                  </CardContent>
-                </Card>
-              )}
+                  {getComparativeByAge.length > 0 && (
+                    <Card>
+                      <CardHeader>
+                        <CardTitle>Estatísticas por Idade</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="overflow-x-auto">
+                          <table className="min-w-full table-auto">
+                            <thead className="bg-gray-50">
+                              <tr>
+                                <th className="px-4 py-2 text-left">Faixa Etária</th>
+                                <th className="px-4 py-2 text-left">Quantidade</th>
+                                <th className="px-4 py-2 text-left">Média</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {getComparativeByAge.map((item, index) => (
+                                <tr key={index} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
+                                  <td className="px-4 py-2 font-medium">{item.faixa}</td>
+                                  <td className="px-4 py-2">{item.count}</td>
+                                  <td className="px-4 py-2">{item.media} kg/dia</td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  )}
+                </div>
+              </TabsContent>
 
-              {/* Tabela Comparativa */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {comparativeSex.length > 1 && (
+              {/* Tab: Avançado */}
+              <TabsContent value="advanced" className="space-y-6">
+                {/* Boxplot por Sexo */}
+                {getBoxplotData.length > 1 && (
                   <Card>
                     <CardHeader>
-                      <CardTitle>Estatísticas por Sexo</CardTitle>
+                      <CardTitle>Boxplot - Distribuição por Sexo</CardTitle>
+                      <CardDescription>
+                        Visualização da distribuição, quartis e outliers por sexo
+                      </CardDescription>
                     </CardHeader>
-                    <CardContent>
-                      <div className="overflow-x-auto">
-                        <table className="min-w-full table-auto">
-                          <thead className="bg-gray-50">
-                            <tr>
-                              <th className="px-4 py-2 text-left">Sexo</th>
-                              <th className="px-4 py-2 text-left">Quantidade</th>
-                              <th className="px-4 py-2 text-left">Média</th>
-                              <th className="px-4 py-2 text-left">Desvio</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {comparativeSex.map((item, index) => (
-                              <tr key={index} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
-                                <td className="px-4 py-2 font-medium">{item.sexo}</td>
-                                <td className="px-4 py-2">{item.count}</td>
-                                <td className="px-4 py-2">{item.media} kg/dia</td>
-                                <td className="px-4 py-2">{item.desvio} kg/dia</td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      </div>
+                    <CardContent className="flex justify-center">
+                      <BoxPlot data={getBoxplotData} width={500} height={350} />
                     </CardContent>
                   </Card>
                 )}
 
-                {comparativeAge.length > 0 && (
+                {/* Heatmap Local vs Idade */}
+                {getHeatmapData.length > 0 && (
                   <Card>
                     <CardHeader>
-                      <CardTitle>Estatísticas por Idade</CardTitle>
+                      <CardTitle>Heatmap - Performance por Local e Faixa Etária</CardTitle>
+                      <CardDescription>
+                        Média de ganho de peso por local e faixa etária (cores mais escuras = maior ganho)
+                      </CardDescription>
                     </CardHeader>
-                    <CardContent>
-                      <div className="overflow-x-auto">
-                        <table className="min-w-full table-auto">
-                          <thead className="bg-gray-50">
-                            <tr>
-                              <th className="px-4 py-2 text-left">Faixa Etária</th>
-                              <th className="px-4 py-2 text-left">Quantidade</th>
-                              <th className="px-4 py-2 text-left">Média</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {comparativeAge.map((item, index) => (
-                              <tr key={index} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
-                                <td className="px-4 py-2 font-medium">{item.faixa}</td>
-                                <td className="px-4 py-2">{item.count}</td>
-                                <td className="px-4 py-2">{item.media} kg/dia</td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      </div>
+                    <CardContent className="flex justify-center">
+                      <HeatMap data={getHeatmapData} width={700} height={400} />
                     </CardContent>
                   </Card>
                 )}
-              </div>
-            </TabsContent>
 
-            {/* Tab: Avançado */}
-            <TabsContent value="advanced" className="space-y-6">
-              {/* Boxplot por Sexo */}
-              {boxplotData.length > 1 && (
+                {/* Análise de Correlação */}
                 <Card>
                   <CardHeader>
-                    <CardTitle>Boxplot - Distribuição por Sexo</CardTitle>
+                    <CardTitle>Análise de Correlação</CardTitle>
                     <CardDescription>
-                      Visualização da distribuição, quartis e outliers por sexo
+                      Relação entre idade e ganho de peso
                     </CardDescription>
                   </CardHeader>
-                  <CardContent className="flex justify-center">
-                    <BoxPlot data={boxplotData} width={500} height={350} />
+                  <CardContent>
+                    <ResponsiveContainer width="100%" height={300}>
+                      <ScatterChart data={getFilteredData}>
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="meses" name="Idade (meses)" />
+                        <YAxis dataKey="ganho_diario" name="Ganho (kg/dia)" />
+                        <Tooltip 
+                          formatter={(value, name) => [
+                            name === 'meses' ? `${value} meses` : `${value} kg/dia`,
+                            name === 'meses' ? 'Idade' : 'Ganho Diário'
+                          ]}
+                        />
+                        <Scatter dataKey="ganho_diario" fill="#3b82f6" />
+                      </ScatterChart>
+                    </ResponsiveContainer>
                   </CardContent>
                 </Card>
-              )}
+              </TabsContent>
 
-              {/* Heatmap Local vs Idade */}
-              {heatmapData.length > 0 && (
+              {/* Tab: Detalhes */}
+              <TabsContent value="details" className="space-y-6">
                 <Card>
                   <CardHeader>
-                    <CardTitle>Heatmap - Performance por Local e Faixa Etária</CardTitle>
-                    <CardDescription>
-                      Média de ganho de peso por local e faixa etária (cores mais escuras = maior ganho)
-                    </CardDescription>
+                    <CardTitle>Detalhes por Animal</CardTitle>
                   </CardHeader>
-                  <CardContent className="flex justify-center">
-                    <HeatMap data={heatmapData} width={700} height={400} />
+                  <CardContent>
+                    <div className="overflow-x-auto">
+                      <table className="min-w-full table-auto">
+                        <thead className="bg-gray-50">
+                          <tr>
+                            <th className="px-4 py-2 text-left font-semibold text-gray-700">Animal</th>
+                            <th className="px-4 py-2 text-left font-semibold text-gray-700">Pasto</th>
+                            <th className="px-4 py-2 text-left font-semibold text-gray-700">Sexo</th>
+                            <th className="px-4 py-2 text-left font-semibold text-gray-700">Idade (meses)</th>
+                            <th className="px-4 py-2 text-left font-semibold text-gray-700">Ganho Diário</th>
+                            <th className="px-4 py-2 text-left font-semibold text-gray-700">Ganho Total</th>
+                            <th className="px-4 py-2 text-left font-semibold text-gray-700">Período (dias)</th>
+                            <th className="px-4 py-2 text-left font-semibold text-gray-700">Status</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {getFilteredData.map((item, index) => {
+                            const isOutlier = getStatisticalAnalysis?.outliers?.some(outlier => outlier.animal === item.animal);
+                            return (
+                              <tr key={index} className={`${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'} ${isOutlier ? 'border-l-4 border-orange-400' : ''}`}>
+                                <td className="px-4 py-2 font-medium">{item.animal}</td>
+                                <td className="px-4 py-2">{item.local}</td>
+                                <td className="px-4 py-2">
+                                  <Badge variant={item.sexo === 'M' ? 'default' : item.sexo === 'F' ? 'secondary' : 'outline'}>
+                                    {item.sexo === 'M' ? 'Macho' : item.sexo === 'F' ? 'Fêmea' : item.sexo}
+                                  </Badge>
+                                </td>
+                                <td className="px-4 py-2">{item.meses}</td>
+                                <td className={`px-4 py-2 font-semibold ${item.ganho_diario >= getScatterData.media ? 'text-green-600' : 'text-red-600'}`}>
+                                  {item.ganho_diario} kg/dia
+                                  {isOutlier && <span className="ml-1 text-orange-500">⚠️</span>}
+                                </td>
+                                <td className="px-4 py-2">{item.ganho_total?.toFixed(2)} kg</td>
+                                <td className="px-4 py-2">{Math.round(item.periodo_dias || 0)} dias</td>
+                                <td className="px-4 py-2">
+                                  <Badge variant={item.ganho_diario >= getScatterData.media ? 'default' : 'destructive'}>
+                                    {item.ganho_diario >= getScatterData.media ? 'Acima' : 'Abaixo'}
+                                  </Badge>
+                                </td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
                   </CardContent>
                 </Card>
-              )}
-
-              {/* Análise de Correlação */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>Análise de Correlação</CardTitle>
-                  <CardDescription>
-                    Relação entre idade e ganho de peso
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <ResponsiveContainer width="100%" height={300}>
-                    <ScatterChart data={filteredData}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="meses" name="Idade (meses)" />
-                      <YAxis dataKey="ganho_diario" name="Ganho (kg/dia)" />
-                      <Tooltip 
-                        formatter={(value, name) => [
-                          name === 'meses' ? `${value} meses` : `${value} kg/dia`,
-                          name === 'meses' ? 'Idade' : 'Ganho Diário'
-                        ]}
-                      />
-                      <Scatter dataKey="ganho_diario" fill="#3b82f6" />
-                    </ScatterChart>
-                  </ResponsiveContainer>
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            {/* Tab: Detalhes */}
-            <TabsContent value="details" className="space-y-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Detalhes por Animal</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="overflow-x-auto">
-                    <table className="min-w-full table-auto">
-                      <thead className="bg-gray-50">
-                        <tr>
-                          <th className="px-4 py-2 text-left font-semibold text-gray-700">Animal</th>
-                          <th className="px-4 py-2 text-left font-semibold text-gray-700">Pasto</th>
-                          <th className="px-4 py-2 text-left font-semibold text-gray-700">Sexo</th>
-                          <th className="px-4 py-2 text-left font-semibold text-gray-700">Idade (meses)</th>
-                          <th className="px-4 py-2 text-left font-semibold text-gray-700">Ganho Diário</th>
-                          <th className="px-4 py-2 text-left font-semibold text-gray-700">Ganho Total</th>
-                          <th className="px-4 py-2 text-left font-semibold text-gray-700">Período (dias)</th>
-                          <th className="px-4 py-2 text-left font-semibold text-gray-700">Status</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {filteredData.map((item, index) => {
-                          const isOutlier = stats && stats.outliers.some(outlier => outlier.animal === item.animal);
-                          return (
-                            <tr key={index} className={`${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'} ${isOutlier ? 'border-l-4 border-orange-400' : ''}`}>
-                              <td className="px-4 py-2 font-medium">{item.animal}</td>
-                              <td className="px-4 py-2">{item.local}</td>
-                              <td className="px-4 py-2">
-                                <Badge variant={item.sexo === 'M' ? 'default' : item.sexo === 'F' ? 'secondary' : 'outline'}>
-                                  {item.sexo === 'M' ? 'Macho' : item.sexo === 'F' ? 'Fêmea' : item.sexo}
-                                </Badge>
-                              </td>
-                              <td className="px-4 py-2">{item.meses}</td>
-                              <td className={`px-4 py-2 font-semibold ${item.ganho_diario >= media ? 'text-green-600' : 'text-red-600'}`}>
-                                {item.ganho_diario} kg/dia
-                                {isOutlier && <span className="ml-1 text-orange-500">⚠️</span>}
-                              </td>
-                              <td className="px-4 py-2">{item.ganho_total?.toFixed(2)} kg</td>
-                              <td className="px-4 py-2">{Math.round(item.periodo_dias || 0)} dias</td>
-                              <td className="px-4 py-2">
-                                <Badge variant={item.ganho_diario >= media ? 'default' : 'destructive'}>
-                                  {item.ganho_diario >= media ? 'Acima' : 'Abaixo'}
-                                </Badge>
-                              </td>
-                            </tr>
-                          );
-                        })}
-                      </tbody>
-                    </table>
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
-          </Tabs>
-        </div>
-      )}
+              </TabsContent>
+            </Tabs>
+          </div>
+        )}
       </div>
     </div>
   );
 };
 
 export default AnimalWeightAnalyzer;
-
