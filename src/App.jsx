@@ -29,7 +29,7 @@ const AnimalWeightAnalyzer = () => {
   const [loading, setLoading] = useState(false);
 
   // Definir faixas etárias para o filtro
-  const faixasEtarias = [
+  const faixasEtarias = useMemo(() => [
     { value: 'all', label: 'Todas as idades', min: 0, max: Infinity },
     { value: '0-8', label: '0-8 meses', min: 0, max: 8 },
     { value: '9-12', label: '9-12 meses', min: 9, max: 12 },
@@ -37,7 +37,7 @@ const AnimalWeightAnalyzer = () => {
     { value: '18-21', label: '18-21 meses', min: 18, max: 21 },
     { value: '22-24', label: '22-24 meses', min: 22, max: 24 },
     { value: '24+', label: '24+ meses', min: 24, max: Infinity }
-  ];
+  ], []);
 
   const mesesParaFiltro = useMemo(() => {
     const meses = [{ value: 'all', label: 'Todos os meses' }];
@@ -85,9 +85,16 @@ const AnimalWeightAnalyzer = () => {
         setData(parsedData);
         calculateWeightGain(parsedData);
       } catch (error) {
-        alert('Erro ao processar arquivo: ' + error.message);
+        console.error('Erro ao processar arquivo:', error);
+        alert('Erro ao processar arquivo. Verifique o console para mais detalhes.');
+      } finally {
+        setLoading(false);
       }
+    };
+    
+    reader.onerror = () => {
       setLoading(false);
+      alert('Erro ao ler o arquivo. Por favor, tente novamente.');
     };
     
     if (file.name.endsWith('.csv')) {
@@ -97,11 +104,12 @@ const AnimalWeightAnalyzer = () => {
     }
   }, []);
 
-  const parseDate = (dateStr) => {
+  const parseDate = useCallback((dateStr) => {
     if (!dateStr) return null;
     
     const dateString = dateStr.toString().trim();
     
+    // Handle Excel serial dates
     if (!isNaN(dateString) && dateString.length > 4) {
       const excelEpoch = new Date(1900, 0, 1);
       const jsDate = new Date(excelEpoch.getTime() + (parseInt(dateString) - 2) * 24 * 60 * 60 * 1000);
@@ -129,15 +137,19 @@ const AnimalWeightAnalyzer = () => {
     }
     
     const date = new Date(dateString);
-    if (!isNaN(date.getTime()) && date.getFullYear() > 1990) {
+    if (!isNaN(date.getTime()) {
       return date;
     }
     
     return null;
-  };
+  }, []);
 
-  const calculateWeightGain = (rawData) => {
+  const calculateWeightGain = useCallback((rawData) => {
     try {
+      if (!rawData || rawData.length === 0) {
+        throw new Error('Nenhum dado fornecido para cálculo');
+      }
+
       const animalGroups = _.groupBy(rawData, row => {
         const animal = row.ANIMAL || row.animal || row.Animal;
         return animal ? animal.toString().trim() : 'UNKNOWN';
@@ -168,7 +180,7 @@ const AnimalWeightAnalyzer = () => {
           const peso2 = current.PESO || current.peso || current.Peso;
           const days = (current.parsedDate - previous.parsedDate) / (1000 * 60 * 60 * 24);
           
-          if (days > 0) {
+          if (days > 0 && !isNaN(peso1) && !isNaN(peso2)) {
             const weightGain = peso2 - peso1;
             const dailyGain = weightGain / days;
             gains.push(dailyGain);
@@ -186,27 +198,28 @@ const AnimalWeightAnalyzer = () => {
             animal: animalName,
             local: (lastRecord.LOCAL || lastRecord.local || lastRecord.Local || 'N/A').toString(),
             sexo: sexoNormalizado,
-            meses: parseFloat((lastRecord.MESES || lastRecord.meses || lastRecord.Meses || 0).toFixed(1)),
+            meses: lastRecord.MESES || lastRecord.meses || lastRecord.Meses || 0,
             ganho_diario: parseFloat(avgDailyGain.toFixed(4)),
             total_pesagens: sortedRecords.length,
             peso_inicial: sortedRecords[0].PESO || sortedRecords[0].peso || sortedRecords[0].Peso,
             peso_final: lastRecord.PESO || lastRecord.peso || lastRecord.Peso,
             ganho_total: (lastRecord.PESO || lastRecord.peso || lastRecord.Peso) - (sortedRecords[0].PESO || sortedRecords[0].peso || sortedRecords[0].Peso),
-            periodo_dias: (sortedRecords[sortedRecords.length - 1].parsedDate - sortedRecords[0].parsedDate) / (1000 * 60 * 60 * 24)
+            periodo_dias: (sortedRecords[sortedRecords.length - 1].parsedDate - sortedRecords[0].parsedDate) / (1000 * 60 * 60 * 1000)
           });
         }
       });
       
       setProcessedData(results);
     } catch (error) {
-      alert('Erro ao calcular ganho de peso: ' + error.message);
+      console.error('Erro ao calcular ganho de peso:', error);
+      alert('Erro ao calcular ganho de peso. Verifique o console para mais detalhes.');
     }
-  };
+  }, [parseDate]);
 
-  const getFilteredData = () => {
+  const getFilteredData = useMemo(() => {
     if (!processedData) return [];
     
-    let filtered = processedData;
+    let filtered = [...processedData];
     
     if (selectedPasto !== 'all') {
       filtered = filtered.filter(item => item.local === selectedPasto);
@@ -237,15 +250,17 @@ const AnimalWeightAnalyzer = () => {
     }
     
     return filtered;
-  };
+  }, [processedData, selectedPasto, selectedIdade, selectedSexo, selectedMonth, faixasEtarias, mesesParaFiltro]);
 
   // ANÁLISES ESTATÍSTICAS AVANÇADAS
   const getStatisticalAnalysis = useMemo(() => {
-    const filtered = getFilteredData();
+    const filtered = getFilteredData;
     if (filtered.length === 0) return null;
 
-    const ganhos = filtered.map(item => item.ganho_diario).sort((a, b) => a - b);
+    const ganhos = filtered.map(item => item.ganho_diario).filter(g => !isNaN(g)).sort((a, b) => a - b);
     const n = ganhos.length;
+    
+    if (n === 0) return null;
     
     // Estatísticas básicas
     const media = _.mean(ganhos);
@@ -298,7 +313,7 @@ const AnimalWeightAnalyzer = () => {
 
   // Análise comparativa por sexo
   const getComparativeBySex = useMemo(() => {
-    const filtered = getFilteredData();
+    const filtered = getFilteredData;
     if (filtered.length === 0) return [];
 
     const sexos = ['M', 'F'].filter(sexo => 
@@ -307,7 +322,9 @@ const AnimalWeightAnalyzer = () => {
 
     return sexos.map(sexo => {
       const dados = filtered.filter(item => item.sexo === sexo);
-      const ganhos = dados.map(item => item.ganho_diario);
+      const ganhos = dados.map(item => item.ganho_diario).filter(g => !isNaN(g));
+      
+      if (ganhos.length === 0) return null;
       
       return {
         sexo: sexo === 'M' ? 'Machos' : 'Fêmeas',
@@ -317,12 +334,12 @@ const AnimalWeightAnalyzer = () => {
         min: Math.min(...ganhos),
         max: Math.max(...ganhos)
       };
-    });
+    }).filter(Boolean);
   }, [getFilteredData]);
 
   // Análise por faixa etária
   const getComparativeByAge = useMemo(() => {
-    const filtered = getFilteredData();
+    const filtered = getFilteredData;
     if (filtered.length === 0) return [];
 
     return faixasEtarias.slice(1).map(faixa => {
@@ -333,36 +350,45 @@ const AnimalWeightAnalyzer = () => {
       
       if (dados.length === 0) return null;
       
-      const ganhos = dados.map(item => item.ganho_diario);
+      const ganhos = dados.map(item => item.ganho_diario).filter(g => !isNaN(g));
+      
+      if (ganhos.length === 0) return null;
       
       return {
         faixa: faixa.label,
         count: dados.length,
         media: parseFloat(_.mean(ganhos).toFixed(4)),
-        desvio: parseFloat(Math.sqrt(_.mean(ganhos.map(x => Math.pow(x - _.mean(ganhos), 2)))).toFixed(4))
+        desvio: parseFloat(Math.sqrt(_.mean(ganhos.map(x => Math.pow(x - _.mean(ganhos), 2))).toFixed(4))
       };
     }).filter(Boolean);
-  }, [getFilteredData]);
+  }, [getFilteredData, faixasEtarias]);
 
   // Dados para Boxplot
   const getBoxplotData = useMemo(() => {
-    const filtered = getFilteredData();
+    const filtered = getFilteredData;
     if (filtered.length === 0) return [];
 
     const sexos = ['M', 'F'].filter(sexo => 
       filtered.some(item => item.sexo === sexo)
     );
 
-    return sexos.map(sexo => ({
-      name: sexo === 'M' ? 'Machos' : 'Fêmeas',
-      values: filtered.filter(item => item.sexo === sexo).map(item => item.ganho_diario),
-      color: sexo === 'M' ? '#3b82f6' : '#ec4899'
-    }));
+    return sexos.map(sexo => {
+      const values = filtered
+        .filter(item => item.sexo === sexo)
+        .map(item => item.ganho_diario)
+        .filter(g => !isNaN(g));
+      
+      return {
+        name: sexo === 'M' ? 'Machos' : 'Fêmeas',
+        values,
+        color: sexo === 'M' ? '#3b82f6' : '#ec4899'
+      };
+    });
   }, [getFilteredData]);
 
   // Dados para Heatmap (Local vs Faixa Etária)
   const getHeatmapData = useMemo(() => {
-    const filtered = getFilteredData();
+    const filtered = getFilteredData;
     if (filtered.length === 0) return [];
 
     const locais = [...new Set(filtered.map(item => item.local))];
@@ -378,22 +404,25 @@ const AnimalWeightAnalyzer = () => {
         });
         
         if (animais.length > 0) {
-          const mediaLocal = _.mean(animais.map(item => item.ganho_diario));
-          heatmapData.push({
-            x: local,
-            y: faixa.label.split(' ')[0], // Pegar apenas a faixa (ex: "0-6")
-            value: mediaLocal
-          });
+          const ganhos = animais.map(item => item.ganho_diario).filter(g => !isNaN(g));
+          if (ganhos.length > 0) {
+            const mediaLocal = _.mean(ganhos);
+            heatmapData.push({
+              x: local,
+              y: faixa.label.split(' ')[0], // Pegar apenas a faixa (ex: "0-6")
+              value: parseFloat(mediaLocal.toFixed(2))
+            });
+          }
         }
       });
     });
     
     return heatmapData;
-  }, [getFilteredData]);
+  }, [getFilteredData, faixasEtarias]);
 
   // Indicadores de Performance
   const getPerformanceIndicators = useMemo(() => {
-    const filtered = getFilteredData();
+    const filtered = getFilteredData;
     if (filtered.length === 0) return null;
 
     const stats = getStatisticalAnalysis;
@@ -412,11 +441,14 @@ const AnimalWeightAnalyzer = () => {
     };
   }, [getFilteredData, getStatisticalAnalysis]);
 
-  const getScatterData = () => {
-    const filtered = getFilteredData();
+  const getScatterData = useMemo(() => {
+    const filtered = getFilteredData;
     if (filtered.length === 0) return { data: [], media: 0 };
     
-    const media = _.mean(filtered.map(item => item.ganho_diario));
+    const ganhos = filtered.map(item => item.ganho_diario).filter(g => !isNaN(g));
+    if (ganhos.length === 0) return { data: [], media: 0 };
+    
+    const media = _.mean(ganhos);
     
     const scatterData = filtered.map((item, index) => ({
       x: index + 1,
@@ -425,14 +457,15 @@ const AnimalWeightAnalyzer = () => {
       local: item.local,
       sexo: item.sexo,
       meses: item.meses,
+      peso_final: item.peso_final,
       acima_media: item.ganho_diario >= media
     }));
     
     return { data: scatterData, media: parseFloat(media.toFixed(4)) };
-  };
+  }, [getFilteredData]);
 
-  const exportToCSV = () => {
-    const filtered = getFilteredData();
+  const exportToCSV = useCallback(() => {
+    const filtered = getFilteredData;
     if (filtered.length === 0) {
       alert('Nenhum dado para exportar');
       return;
@@ -449,7 +482,7 @@ const AnimalWeightAnalyzer = () => {
       'Ganho Total (kg)': item.ganho_total,
       'Período (dias)': Math.round(item.periodo_dias),
       'Total de Pesagens': item.total_pesagens,
-      'Status': item.ganho_diario >= getScatterData().media ? 'Acima da Média' : 'Abaixo da Média'
+      'Status': item.ganho_diario >= getScatterData.media ? 'Acima da Média' : 'Abaixo da Média'
     }));
 
     const csv = Papa.unparse(csvData);
@@ -470,30 +503,38 @@ const AnimalWeightAnalyzer = () => {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-  };
+  }, [getFilteredData, getScatterData.media, selectedPasto, selectedIdade, selectedSexo]);
 
-  const handleFileUpload = (event) => {
+  const handleFileUpload = useCallback((event) => {
     const file = event.target.files[0];
     if (file) {
       processFile(file);
     }
-  };
+  }, [processFile]);
 
-  const handleDragOver = (event) => {
+  const handleDragOver = useCallback((event) => {
     event.preventDefault();
-  };
+  }, []);
 
-  const handleDrop = (event) => {
+  const handleDrop = useCallback((event) => {
     event.preventDefault();
     const file = event.dataTransfer.files[0];
     if (file) {
       processFile(file);
     }
-  };
+  }, [processFile]);
 
-  const uniqueLocals = processedData ? [...new Set(processedData.map(item => item.local))] : [];
-  const uniqueSexos = processedData ? [...new Set(processedData.map(item => item.sexo))].filter(sexo => sexo !== 'N/A') : [];
-  const uniqueAnimals = processedData ? [...new Set(processedData.map(item => item.animal))].sort() : [];
+  const uniqueLocals = useMemo(() => 
+    processedData ? [...new Set(processedData.map(item => item.local))] : []
+  , [processedData]);
+
+  const uniqueSexos = useMemo(() => 
+    processedData ? [...new Set(processedData.map(item => item.sexo))].filter(sexo => sexo !== 'N/A') : []
+  , [processedData]);
+
+  const uniqueAnimals = useMemo(() => 
+    processedData ? [...new Set(processedData.map(item => item.animal))].sort() : []
+  , [processedData]);
 
   // Função para obter dados históricos de um animal específico
   const getAnimalHistoryData = useCallback((animalName) => {
@@ -520,16 +561,7 @@ const AnimalWeightAnalyzer = () => {
       ganho_periodo: index > 0 ? record.peso - sortedRecords[index - 1].peso : 0,
       dias_desde_inicio: index > 0 ? Math.round((record.parsedDate - sortedRecords[0].parsedDate) / (1000 * 60 * 60 * 24)) : 0
     }));
-  }, [data]);
-
-  const { data: scatterData, media } = getScatterData();
-  const filteredData = getFilteredData();
-  const stats = getStatisticalAnalysis;
-  const comparativeSex = getComparativeBySex;
-  const comparativeAge = getComparativeByAge;
-  const boxplotData = getBoxplotData;
-  const heatmapData = getHeatmapData;
-  const performanceIndicators = getPerformanceIndicators;
+  }, [data, parseDate]);
 
   const CustomTooltip = ({ active, payload }) => {
     if (active && payload && payload.length) {
@@ -604,151 +636,151 @@ const AnimalWeightAnalyzer = () => {
               </div>
             )}
           </CardContent>
-      </Card>
+        </Card>
 
-      {processedData && (
-        <div className="space-y-6 fade-in">
-          {/* Filtros */}
-          <Card className="card-enhanced filter-section">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-green-700">
-                <Filter className="text-green-600" />
-                Filtros Avançados
-              </CardTitle>
-              <CardDescription>
-                Personalize sua análise filtrando os dados por diferentes critérios
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div>
-                  <label className="block text-sm font-semibold text-green-700 mb-3">
-                    <span className="flex items-center gap-2">
-                      🏞️ Filtrar por pasto:
-                    </span>
-                  </label>
-                  <Select value={selectedPasto} onValueChange={setSelectedPasto}>
-                    <SelectTrigger className="input-enhanced">
-                      <SelectValue placeholder="Selecione um pasto" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">Todos os pastos</SelectItem>
-                      {uniqueLocals.map(local => (
-                        <SelectItem key={local} value={local}>{local}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+        {processedData && (
+          <div className="space-y-6 fade-in">
+            {/* Filtros */}
+            <Card className="card-enhanced filter-section">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-green-700">
+                  <Filter className="text-green-600" />
+                  Filtros Avançados
+                </CardTitle>
+                <CardDescription>
+                  Personalize sua análise filtrando os dados por diferentes critérios
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <div>
+                    <label className="block text-sm font-semibold text-green-700 mb-3">
+                      <span className="flex items-center gap-2">
+                        🏞️ Filtrar por pasto:
+                      </span>
+                    </label>
+                    <Select value={selectedPasto} onValueChange={setSelectedPasto}>
+                      <SelectTrigger className="input-enhanced">
+                        <SelectValue placeholder="Selecione um pasto" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">Todos os pastos</SelectItem>
+                        {uniqueLocals.map(local => (
+                          <SelectItem key={local} value={local}>{local}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-semibold text-green-700 mb-3">
+                      <span className="flex items-center gap-2">
+                        <Calendar className="w-4 h-4" />
+                        Filtrar por idade (grupos):
+                      </span>
+                    </label>
+                    <Select value={selectedIdade} onValueChange={setSelectedIdade}>
+                      <SelectTrigger className="input-enhanced">
+                        <SelectValue placeholder="Selecione uma faixa etária" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {faixasEtarias.map(faixa => (
+                          <SelectItem key={faixa.value} value={faixa.value}>
+                            {faixa.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-semibold text-green-700 mb-3">
+                      <span className="flex items-center gap-2">
+                        <Calendar className="w-4 h-4" />
+                        Filtrar por idade (meses):
+                      </span>
+                    </label>
+                    <Select value={selectedMonth} onValueChange={setSelectedMonth}>
+                      <SelectTrigger className="input-enhanced">
+                        <SelectValue placeholder="Selecione um mês" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {mesesParaFiltro.map(mes => (
+                          <SelectItem key={mes.value} value={mes.value}>
+                            {mes.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-semibold text-green-700 mb-3">
+                      <span className="flex items-center gap-2">
+                        <Users className="w-4 h-4" />
+                        Filtrar por sexo:
+                      </span>
+                    </label>
+                    <Select value={selectedSexo} onValueChange={setSelectedSexo}>
+                      <SelectTrigger className="input-enhanced">
+                        <SelectValue placeholder="Selecione o sexo" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">Todos os sexos</SelectItem>
+                        {uniqueSexos.map(sexo => (
+                          <SelectItem key={sexo} value={sexo}>
+                            {sexo === 'M' ? '🐂 Macho' : sexo === 'F' ? '🐄 Fêmea' : sexo}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
                 
-                <div>
-                  <label className="block text-sm font-semibold text-green-700 mb-3">
-                    <span className="flex items-center gap-2">
-                      <Calendar className="w-4 h-4" />
-                      Filtrar por idade (grupos):
-                    </span>
-                  </label>
-                  <Select value={selectedIdade} onValueChange={setSelectedIdade}>
-                    <SelectTrigger className="input-enhanced">
-                      <SelectValue placeholder="Selecione uma faixa etária" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {faixasEtarias.map(faixa => (
-                        <SelectItem key={faixa.value} value={faixa.value}>
-                          {faixa.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                <div className="flex flex-wrap justify-between items-center mt-6 gap-4">
+                  <div className="flex flex-wrap gap-2">
+                    {selectedPasto !== 'all' && (
+                      <Badge variant="secondary" className="bg-green-100 text-green-800 border-green-200">
+                        🏞️ Pasto: {selectedPasto}
+                      </Badge>
+                    )}
+                    {selectedIdade !== 'all' && (
+                      <Badge variant="secondary" className="bg-blue-100 text-blue-800 border-blue-200">
+                        📅 Idade: {faixasEtarias.find(f => f.value === selectedIdade)?.label}
+                      </Badge>
+                    )}
+                    {selectedSexo !== 'all' && (
+                      <Badge variant="secondary" className="bg-purple-100 text-purple-800 border-purple-200">
+                        {selectedSexo === 'M' ? '🐂' : '🐄'} Sexo: {selectedSexo === 'M' ? 'Macho' : selectedSexo === 'F' ? 'Fêmea' : selectedSexo}
+                      </Badge>
+                    )}
+                  </div>
+                  
+                  <Button onClick={exportToCSV} variant="outline" className="btn-secondary flex items-center gap-2">
+                    <Download size={16} />
+                    Exportar CSV ({getFilteredData.length} animais)
+                  </Button>
                 </div>
+              </CardContent>
+            </Card>
 
-                <div>
-                  <label className="block text-sm font-semibold text-green-700 mb-3">
-                    <span className="flex items-center gap-2">
-                      <Calendar className="w-4 h-4" />
-                      Filtrar por idade (meses):
-                    </span>
-                  </label>
-                  <Select value={selectedMonth} onValueChange={setSelectedMonth}>
-                    <SelectTrigger className="input-enhanced">
-                      <SelectValue placeholder="Selecione um mês" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {mesesParaFiltro.map(mes => (
-                        <SelectItem key={mes.value} value={mes.value}>
-                          {mes.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+            {/* Alertas de Outliers */}
+            {getStatisticalAnalysis?.outliers?.length > 0 && (
+              <Alert className="alert-enhanced slide-up">
+                <AlertTriangle className="h-5 w-5 text-orange-600" />
+                <AlertDescription className="text-green-800">
+                  <strong>⚠️ Atenção:</strong> {getStatisticalAnalysis.outliers.length} animal(is) com performance atípica detectado(s): {' '}
+                  <span className="font-semibold">
+                    {getStatisticalAnalysis.outliers.slice(0, 3).map(animal => animal.animal).join(', ')}
+                    {getStatisticalAnalysis.outliers.length > 3 && ` e mais ${getStatisticalAnalysis.outliers.length - 3}`}
+                  </span>
+                </AlertDescription>
+              </Alert>
+            )}
 
-                <div>
-                  <label className="block text-sm font-semibold text-green-700 mb-3">
-                    <span className="flex items-center gap-2">
-                      <Users className="w-4 h-4" />
-                      Filtrar por sexo:
-                    </span>
-                  </label>
-                  <Select value={selectedSexo} onValueChange={setSelectedSexo}>
-                    <SelectTrigger className="input-enhanced">
-                      <SelectValue placeholder="Selecione o sexo" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">Todos os sexos</SelectItem>
-                      {uniqueSexos.map(sexo => (
-                        <SelectItem key={sexo} value={sexo}>
-                          {sexo === 'M' ? '🐂 Macho' : sexo === 'F' ? '🐄 Fêmea' : sexo}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-              
-              <div className="flex flex-wrap justify-between items-center mt-6 gap-4">
-                <div className="flex flex-wrap gap-2">
-                  {selectedPasto !== 'all' && (
-                    <Badge variant="secondary" className="bg-green-100 text-green-800 border-green-200">
-                      🏞️ Pasto: {selectedPasto}
-                    </Badge>
-                  )}
-                  {selectedIdade !== 'all' && (
-                    <Badge variant="secondary" className="bg-blue-100 text-blue-800 border-blue-200">
-                      📅 Idade: {faixasEtarias.find(f => f.value === selectedIdade)?.label}
-                    </Badge>
-                  )}
-                  {selectedSexo !== 'all' && (
-                    <Badge variant="secondary" className="bg-purple-100 text-purple-800 border-purple-200">
-                      {selectedSexo === 'M' ? '🐂' : '🐄'} Sexo: {selectedSexo === 'M' ? 'Macho' : selectedSexo === 'F' ? 'Fêmea' : selectedSexo}
-                    </Badge>
-                  )}
-                </div>
-                
-                <Button onClick={exportToCSV} variant="outline" className="btn-secondary flex items-center gap-2">
-                  <Download size={16} />
-                  Exportar CSV ({filteredData.length} animais)
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Alertas de Outliers */}
-          {stats && stats.outliers.length > 0 && (
-            <Alert className="alert-enhanced slide-up">
-              <AlertTriangle className="h-5 w-5 text-orange-600" />
-              <AlertDescription className="text-green-800">
-                <strong>⚠️ Atenção:</strong> {stats.outliers.length} animal(is) com performance atípica detectado(s): {' '}
-                <span className="font-semibold">
-                  {stats.outliers.slice(0, 3).map(animal => animal.animal).join(', ')}
-                  {stats.outliers.length > 3 && ` e mais ${stats.outliers.length - 3}`}
-                </span>
-              </AlertDescription>
-            </Alert>
-          )}
-
-          {/* Dashboard com Tabs */}
-          <Tabs defaultValue="overview" className="w-full">
-            <TabsList className="grid w-full grid-cols-6 bg-white/80 backdrop-blur-sm border border-green-200">
+            {/* Dashboard com Tabs */}
+            <Tabs defaultValue="overview" className="w-full">
+              <TabsList className="grid w-full grid-cols-6 bg-white/80 backdrop-blur-sm border border-green-200">
               <TabsTrigger value="overview" className="tab-enhanced">📊 Visão Geral</TabsTrigger>
               <TabsTrigger value="individual" className="tab-enhanced">🐄 Individual</TabsTrigger>
               <TabsTrigger value="statistics" className="tab-enhanced">📈 Estatísticas</TabsTrigger>
