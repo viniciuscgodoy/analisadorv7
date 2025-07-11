@@ -137,7 +137,7 @@ const AnimalWeightAnalyzer = () => {
     }
     
     const date = new Date(dateString);
-    if (!isNaN(date.getTime()) {
+    if (!isNaN(date.getTime())) {
       return date;
     }
     
