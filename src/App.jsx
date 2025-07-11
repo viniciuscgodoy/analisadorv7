@@ -112,7 +112,7 @@ const AnimalWeightAnalyzer = () => {
     // Handle Excel serial dates
     if (!isNaN(dateString) && dateString.length > 4) {
       const excelEpoch = new Date(1900, 0, 1);
-      const jsDate = new Date(excelEpoch.getTime() + (parseInt(dateString) - 2) * 24 * 60 * 60 * 1000);
+      const jsDate = new Date(excelEpoch.getTime() + ((parseInt(dateString) - 2) * 24 * 60 * 60 * 1000));
       return jsDate;
     }
     
@@ -204,7 +204,7 @@ const AnimalWeightAnalyzer = () => {
             peso_inicial: sortedRecords[0].PESO || sortedRecords[0].peso || sortedRecords[0].Peso,
             peso_final: lastRecord.PESO || lastRecord.peso || lastRecord.Peso,
             ganho_total: (lastRecord.PESO || lastRecord.peso || lastRecord.Peso) - (sortedRecords[0].PESO || sortedRecords[0].peso || sortedRecords[0].Peso),
-            periodo_dias: (sortedRecords[sortedRecords.length - 1].parsedDate - sortedRecords[0].parsedDate) / (1000 * 60 * 60 * 1000)
+            periodo_dias: (sortedRecords[sortedRecords.length - 1].parsedDate - sortedRecords[0].parsedDate) / (1000 * 60 * 60 * 24)
           });
         }
       });
